@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsenSys | Web3 Financial Gateway</title>
+    <style>
+        /* --- 1. CORE VARIABLES & RESET --- */
+        :root {
+            /* DARK THEME (DEFAULT) */
+            --bg-body: #050505;
+            --bg-glass: rgba(30, 32, 40, 0.6);
+            --bg-glass-hover: rgba(45, 48, 60, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            
+            --primary: #6C5DD3; 
+            --accent: #3751FF;
+            --success: #00DC82;
+            --danger: #FF3B30;
+            --warning: #FFB020;
+            
+            --text-main: #FFFFFF;
+            --text-muted: #9A9FA5;
+            
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+            --radius: 24px;
+        }
+
+        /* LIGHT THEME */
+        [data-theme="light"] {
+            --bg-body: #f0f2f5;
+            --bg-glass: rgba(255, 255, 255, 0.75);
+            --bg-glass-hover: rgba(240, 240, 240, 0.9);
+            --border-glass: rgba(0, 0, 0, 0.1);
+            
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            
+            /* Primary colors stay the same, but backgrounds change */
+        }
+
+        /* Glass effect adjustments for light mode */
+        [data-theme="light"] aside, 
+        [data-theme="light"] .card,
+        [data-theme="light"] .topbar,
+        [data-theme="light"] .search-bar,
+        [data-theme="light"] .icon-btn,
+        [data-theme="light"] .input-control,
+        [data-theme="light"] .toast {
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            height: 100vh;
+            overflow: hidden;
+            /* Ambient Background Glow (Changes slightly in light mode) */
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(108, 93, 211, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(55, 81, 255, 0.08) 0%, transparent 40%);
+        }
+
+        /* --- 2. LAYOUT STRUCTURE --- */
+        .app-container { display: flex; height: 100%; padding: 20px; gap: 20px; }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 24px;
+            transition: all 0.3s ease;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; font-weight: 700; font-size: 1.1rem; }
+        .brand-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px;
+            display: grid; place-items: center;
+            font-weight: 800; font-size: 18px;
+        }
+
+        .nav-list { list-style: none; }
+        .nav-item { margin-bottom: 12px; }
+        .nav-link {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 16px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .nav-link:hover { background: rgba(128,128,128,0.1); color: var(--text-main); transform: translateX(5px); }
+        .nav-link.active { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(108, 93, 211, 0.3); }
+
+        /* Main Content */
+        main { flex: 1; display: flex; flex-direction: column; gap: 20px; overflow: hidden; position: relative; }
+
+        /* Topbar */
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center; padding: 0 10px;
+        }
+        .search-bar {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 50px;
+            padding: 12px 24px;
+            display: flex; align-items: center; gap: 12px;
+            width: 300px; transition: border-color 0.3s;
+        }
+        .search-bar input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 14px; }
+
+        .user-actions { display: flex; align-items: center; gap: 20px; position: relative; }
+        .user-profile-header {
+            display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 10px; border-radius: 12px; transition: 0.2s;
+        }
+        .user-profile-header:hover { background: rgba(128,128,128,0.1); }
+        .user-name-display { font-weight: 600; font-size: 0.9rem; }
+
+        .icon-btn {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--bg-glass); border: 1px solid var(--border-glass);
+            display: grid; place-items: center;
+            color: var(--text-muted); cursor: pointer; transition: 0.2s;
+        }
+        .icon-btn:hover { background: var(--bg-glass-hover); color: var(--text-main); }
+
+        .connect-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white; border: none; padding: 12px 24px;
+            border-radius: 50px; font-weight: 600; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(108, 93, 211, 0.3); transition: transform 0.2s;
+        }
+        .connect-btn.connected {
+            background: var(--bg-glass); border: 1px solid var(--success); color: var(--success);
+            box-shadow: none; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono);
+        }
+        .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
+
+        /* View Sections */
+        .view-section {
+            display: none; flex: 1; overflow-y: auto;
+            padding-right: 10px; padding-bottom: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 3. COMPONENTS --- */
+        .card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            padding: 24px; position: relative; margin-bottom: 20px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 2.5fr 1fr; grid-template-rows: auto 1fr; gap: 20px; }
+        .balance-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; grid-column: 1 / -1; }
+        .balance-icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 20px; margin-bottom: 15px; }
+        .eth-icon { background: rgba(108, 93, 211, 0.15); color: var(--primary); }
+        .big-value { font-size: 28px; font-weight: 700; }
+        .trend { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+        .trend.up { color: var(--success); }
+        .trend.down { color: var(--danger); }
+
+        /* --- 4. FUNCTIONAL STYLES --- */
+        .input-control {
+            width: 100%; padding: 12px;
+            background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-glass);
+            border-radius: 12px; color: var(--text-main);
+            font-family: var(--font-mono); transition: border-color 0.2s;
+        }
+        .input-control:focus { border-color: var(--primary); }
+        
+        /* Fix input for light mode */
+        [data-theme="light"] .input-control { background-color: rgba(0,0,0,0.05); }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem; }
+
+        .action-btn {
+            background-color: var(--primary); color: white; border: none;
+            padding: 12px 24px; border-radius: 12px; font-weight: 600;
+            cursor: pointer; transition: background 0.2s; width: 100%;
+        }
+        .action-btn:hover { background-color: var(--accent); }
+        .action-btn.secondary { background-color: transparent; border: 1px solid var(--border-glass); color: var(--text-main); }
+        .action-btn.secondary:hover { border-color: var(--text-muted); background: rgba(128,128,128,0.1); }
+        .action-btn.danger { background-color: rgba(255, 59, 48, 0.1); color: var(--danger); }
+        .action-btn.danger:hover { background-color: var(--danger); color: white; }
+
+        /* Tabs */
+        .wallet-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 10px; }
+        .wallet-tab { padding: 8px 16px; cursor: pointer; color: var(--text-muted); font-weight: 500; border-radius: 8px; }
+        .wallet-tab.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        /* Admin Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid var(--border-glass); font-size: 0.9rem; }
+        th { color: var(--text-muted); font-weight: 600; }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .status-success { background-color: rgba(0, 220, 130, 0.2); color: var(--success); }
+        .status-pending { background-color: rgba(255, 176, 32, 0.2); color: var(--warning); }
+
+        /* Lists */
+        .tx-list { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+        .tx-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .tx-item:hover { background: rgba(128,128,128,0.1); }
+        .tx-icon { width: 40px; height: 40px; border-radius: 12px; background: #2A2D36; display: grid; place-items: center; font-size: 18px; }
+        [data-theme="light"] .tx-icon { background: #e0e0e0; }
+
+        /* Settings Styles */
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-glass); }
+        .setting-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .setting-info p { font-size: 12px; color: var(--text-muted); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #2A2D36; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        [data-theme="light"] .slider { background-color: #ccc; }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            background: var(--bg-glass); backdrop-filter: blur(20px);
+            border-left: 4px solid var(--primary);
+            color: var(--text-main); padding: 16px 20px;
+            border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            min-width: 300px; animation: slideIn 0.3s ease;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside>
+            <div class="brand">
+                <div class="brand-logo">C</div>
+                <span>ConsenSys</span>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item"><a class="nav-link active" onclick="router('dashboard')" data-i18n="dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="router('wallet')" data-i18n="wallet_transfer">Wallet & Transfer</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="router('contracts')" data-i18n="smart_contracts">Smart Contracts</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="router('admin')" data-i18n="admin_panel">Admin Panel</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="router('settings')" data-i18n="settings">Settings</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main>
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="search-bar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="searchInput" placeholder="Search transactions..." onkeyup="filterTransactions()">
+                </div>
+                <div class="user-actions">
+                    <div class="icon-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <div style="position:absolute; top:10px; right:10px; width:6px; height:6px; background:var(--danger); border-radius:50%;"></div>
+                    </div>
+                    <button id="connect-wallet-btn" class="connect-btn" onclick="connectWallet()" data-i18n="connect_wallet">Connect Wallet</button>
+                    
+                    <div class="user-profile-header">
+                        <div class="icon-btn" style="padding:0; width:40px; height:40px; overflow:hidden;">
+                            <img id="header-avatar" src="https://picsum.photos/seed/user/100/100" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
+                        <span id="header-username" class="user-name-display">Guest</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 1: DASHBOARD -->
+            <div id="dashboard" class="view-section active">
+                <div class="dashboard-grid">
+                    <!-- Balance Cards -->
+                    <div class="balance-cards">
+                        <div class="card">
+                            <div class="balance-icon eth-icon">Ξ</div>
+                            <div class="big-value" id="dash-balance-eth">0.00 ETH</div>
+                            <div class="trend up" id="dash-trend-eth">▲ 0.00%</div>
+                        </div>
+                        <div class="card">
+                            <div class="balance-icon" style="background:rgba(255,176,32,0.15); color:#ffb020;">₿</div>
+                            <div class="big-value" id="dash-balance-btc">0.85 BTC</div>
+                            <div class="trend down">▼ 2.1%</div>
+                        </div>
+                        <div class="card">
+                            <div class="balance-icon" style="background:rgba(0,220,130,0.15); color:#00dc82;">$</div>
+                            <div class="big-value" id="dash-total-usd">0.00</div>
+                            <div class="trend" style="color:var(--primary)" data-i18n="total_net_worth">Total Net Worth</div>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="card" style="min-height: 400px; grid-column: 1 / 2;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                            <div>
+                                <div style="font-size:16px; font-weight:600;" data-i18n="portfolio_analytics">Portfolio Analytics</div>
+                                <div style="font-size:13px; color:var(--text-muted);" id="chart-subtitle">Overview</div>
+                            </div>
+                        </div>
+                        <div style="height: 300px; width: 100%;">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Transactions -->
+                    <div class="card" style="grid-column: 2 / 3;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                            <div style="font-size:16px; font-weight:600;" data-i18n="recent_transactions">Recent Transactions</div>
+                        </div>
+                        <div class="tx-list" id="txList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: WALLET -->
+            <div id="wallet" class="view-section">
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                    <!-- Balance Card -->
+                    <div class="card">
+                        <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="my_wallet">My Wallet</h3>
+                        <div style="margin: 20px 0; text-align: center;">
+                            <img src="https://picsum.photos/seed/ethqr/150/150" alt="QR" style="border-radius: 10px; border: 4px solid white; width: 100px; height: 100px;">
+                            <p style="margin-top: 10px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);" id="wallet-address-display" title="Click to copy" onclick="copyAddress()" style="cursor:pointer;">Not Connected</p>
+                        </div>
+                        <div style="border-top: 1px solid var(--border-glass); padding-top: 15px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                                <span>ETH</span>
+                                <span id="wallet-eth-bal">0.00</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                                <span id="currency-display">USD</span>
+                                <span id="wallet-usdc-bal">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Send / Receive Tabs -->
+                    <div class="card">
+                        <div class="wallet-tabs">
+                            <div class="wallet-tab active" onclick="switchWalletTab('send', this)" data-i18n="send">Send</div>
+                            <div class="wallet-tab" onclick="switchWalletTab('receive', this)" data-i18n="receive">Receive</div>
+                        </div>
+
+                        <!-- Send Tab -->
+                        <div id="tab-send" class="tab-content active">
+                            <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="send_assets">Send Assets</h3>
+                            <form id="transfer-form" onsubmit="handleTransfer(event)">
+                                <div class="form-group">
+                                    <label data-i18n="asset">Asset</label>
+                                    <select class="input-control" id="asset-select">
+                                        <option value="ETH">Ethereum (ETH)</option>
+                                        <option value="USDC">USD Coin (USDC)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="recipient_address">Recipient Address</label>
+                                    <input type="text" class="input-control" placeholder="0x..." required id="recipient-address">
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="amount">Amount</label>
+                                    <input type="number" class="input-control" placeholder="0.00" step="0.0001" required id="transfer-amount">
+                                </div>
+                                <button type="submit" class="action-btn" data-i18n="sign_send">Sign & Send Transaction</button>
+                            </form>
+                        </div>
+
+                        <!-- Receive Tab -->
+                        <div id="tab-receive" class="tab-content">
+                            <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="simulate_receive">Simulate Receiving Funds</h3>
+                            <form id="receive-form" onsubmit="handleReceive(event)">
+                                <div class="form-group">
+                                    <label data-i18n="asset">Asset</label>
+                                    <select class="input-control">
+                                        <option value="ETH">Ethereum (ETH)</option>
+                                        <option value="USDC">USD Coin (USDC)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="amount_receive">Amount to Receive</label>
+                                    <input type="number" class="input-control" placeholder="0.00" step="0.0001" required id="receive-amount">
+                                </div>
+                                <button type="submit" class="action-btn secondary" data-i18n="add_wallet">Add to Wallet</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: SMART CONTRACTS -->
+            <div id="contracts" class="view-section">
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="deploy_contract">Deploy New Contract</h3>
+                    <textarea id="contract-code" class="input-control" style="height: 150px; font-family: var(--font-mono); color: #a5d6ff; background-color: #0d1117; white-space: pre;" readonly>// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ConsenSysVault {
+    mapping(address => uint256) public balances;
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 amount) public {
+        require(balances[msg.sender] >= amount, "Insufficient funds");
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+    }
+}</textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="action-btn" style="width: auto;" onclick="deployContract()">🚀 Deploy to Mainnet</button>
+                        <button class="action-btn secondary" style="width: auto;" data-i18n="verify_source">Verify Source</button>
+                    </div>
+                </div>
+
+                <h3 style="margin-left: 5px; margin-bottom: 15px;" data-i18n="active_interactions">Active Interactions</h3>
+                <div class="function-list" style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="function-item" style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="color: var(--primary); font-weight: 600; font-family: var(--font-mono);">deposit()</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Payable • ConsenSysVault.sol</div>
+                        </div>
+                        <button class="action-btn" style="width: 120px;" onclick="interactContract('Deposit', '1.0 ETH')">Execute</button>
+                    </div>
+                    <div class="function-item" style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="color: var(--primary); font-weight: 600; font-family: var(--font-mono);">withdraw(uint256 amount)</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">ConsensysVault.sol</div>
+                        </div>
+                        <button class="action-btn secondary" style="width: 120px;">Read</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: ADMIN -->
+            <div id="admin" class="view-section">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+                        <h3 style="font-weight:600;" data-i18n="system_log">System Transaction Log</h3>
+                        <button class="action-btn secondary" style="font-size: 0.8rem; width: auto;" onclick="exportCSV()">⬇ Export CSV</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tx Hash</th>
+                                <th data-i18n="type">Type</th>
+                                <th>Timestamp</th>
+                                <th data-i18n="status">Status</th>
+                                <th>Block</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW 5: SETTINGS (UPDATED) -->
+            <div id="settings" class="view-section">
+                <div class="settings-grid">
+                    <!-- Profile Card -->
+                    <div class="card">
+                        <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="profile_info">Profile Information</h3>
+                        <div class="form-group">
+                            <label data-i18n="full_name">Full Name</label>
+                            <input type="text" class="input-control" id="setting-name" value="Alex Developer">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="email_address">Email Address</label>
+                            <input type="email" class="input-control" id="setting-email" value="alex@consensys.net">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="wallet_address">Wallet Address (Read Only)</label>
+                            <input type="text" class="input-control" value="0x71C...3A9B" readonly style="opacity: 0.7;">
+                        </div>
+                        <button class="action-btn" onclick="saveProfileSettings()" data-i18n="save_profile">Save Profile</button>
+                    </div>
+
+                    <!-- Appearance & Language Card (NEW) -->
+                    <div class="card">
+                        <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="appearance_lang">Appearance & Language</h3>
+                        
+                        <!-- Theme Toggle -->
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4 data-i18n="dark_mode">Dark Mode</h4>
+                                <p data-i18n="dark_mode_desc">Switch between dark and light themes</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="theme-toggle" checked onchange="toggleTheme(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Language Select -->
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4 data-i18n="language">Language</h4>
+                                <p data-i18n="language_desc">Select your preferred language</p>
+                            </div>
+                            <select id="language-select" class="input-control" style="width: 140px; padding: 5px 10px;" onchange="changeLanguage(this.value)">
+                                <option value="en">English</option>
+                                <option value="id">Indonesia</option>
+                            </select>
+                        </div>
+
+                         <!-- Currency -->
+                         <div class="setting-row">
+                            <div class="setting-info">
+                                <h4 data-i18n="display_currency">Display Currency</h4>
+                                <p data-i18n="display_currency_desc">Change currency symbols</p>
+                            </div>
+                            <select id="currency-select" class="input-control" style="width: 120px; padding: 5px 10px;" onchange="updateCurrency()">
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="IDR">IDR (Rp)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Security Card -->
+                    <div class="card">
+                        <h3 style="margin-bottom:20px; font-weight:600;" data-i18n="security">Security</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h4>Two-Factor Auth (2FA)</h4>
+                                <p data-i18n="2fa_desc">Extra layer of security</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="tfa-toggle" onchange="toggle2FA(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label data-i18n="change_password">Change Password</label>
+                            <input type="password" class="input-control" placeholder="New password">
+                        </div>
+                        <button class="action-btn secondary" onclick="showToast('Password update simulated', 'info')" data-i18n="update_password">Update Password</button>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="card" style="border: 1px solid var(--danger);">
+                        <h3 style="margin-bottom:20px; font-weight:600; color: var(--danger);" data-i18n="danger_zone">Danger Zone</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;" data-i18n="danger_desc">
+                            Irreversible actions.
+                        </p>
+                        <button class="action-btn danger" onclick="showToast('Account deletion simulated', 'error')" data-i18n="delete_account">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // --- TRANSLATION DICTIONARY ---
+        const translations = {
+            en: {
+                dashboard: "Dashboard",
+                wallet_transfer: "Wallet & Transfer",
+                smart_contracts: "Smart Contracts",
+                admin_panel: "Admin Panel",
+                settings: "Settings",
+                connect_wallet: "Connect Wallet",
+                total_net_worth: "Total Net Worth",
+                portfolio_analytics: "Portfolio Analytics",
+                recent_transactions: "Recent Transactions",
+                my_wallet: "My Wallet",
+                send: "Send",
+                receive: "Receive",
+                send_assets: "Send Assets",
+                asset: "Asset",
+                recipient_address: "Recipient Address",
+                amount: "Amount",
+                sign_send: "Sign & Send Transaction",
+                simulate_receive: "Simulate Receiving Funds",
+                amount_receive: "Amount to Receive",
+                add_wallet: "Add to Wallet",
+                deploy_contract: "Deploy New Contract",
+                verify_source: "Verify Source",
+                active_interactions: "Active Interactions",
+                system_log: "System Transaction Log",
+                type: "Type",
+                status: "Status",
+                profile_info: "Profile Information",
+                full_name: "Full Name",
+                email_address: "Email Address",
+                wallet_address: "Wallet Address (Read Only)",
+                save_profile: "Save Profile",
+                appearance_lang: "Appearance & Language",
+                dark_mode: "Dark Mode",
+                dark_mode_desc: "Switch between dark and light themes",
+                language: "Language",
+                language_desc: "Select your preferred language",
+                display_currency: "Display Currency",
+                display_currency_desc: "Change currency symbols",
+                security: "Security",
+                "2fa_desc": "Extra layer of security",
+                change_password: "Change Password",
+                update_password: "Update Password",
+                danger_zone: "Danger Zone",
+                danger_desc: "Irreversible actions.",
+                delete_account: "Delete Account",
+                search_placeholder: "Search transactions..."
+            },
+            id: {
+                dashboard: "Dasbor",
+                wallet_transfer: "Dompet & Transfer",
+                smart_contracts: "Smart Contracts",
+                admin_panel: "Panel Admin",
+                settings: "Pengaturan",
+                connect_wallet: "Hubungkan Dompet",
+                total_net_worth: "Total Kekayaan Bersih",
+                portfolio_analytics: "Analisis Portofolio",
+                recent_transactions: "Transaksi Terakhir",
+                my_wallet: "Dompet Saya",
+                send: "Kirim",
+                receive: "Terima",
+                send_assets: "Kirim Aset",
+                asset: "Aset",
+                recipient_address: "Alamat Penerima",
+                amount: "Jumlah",
+                sign_send: "Tanda Tangani & Kirim Transaksi",
+                simulate_receive: "Simulasi Penerimaan Dana",
+                amount_receive: "Jumlah yang Diterima",
+                add_wallet: "Tambahkan ke Dompet",
+                deploy_contract: "Deploy Kontrak Baru",
+                verify_source: "Verifikasi Sumber",
+                active_interactions: "Interaksi Aktif",
+                system_log: "Log Transaksi Sistem",
+                type: "Tipe",
+                status: "Status",
+                profile_info: "Informasi Profil",
+                full_name: "Nama Lengkap",
+                email_address: "Alamat Email",
+                wallet_address: "Alamat Dompet (Hanya Baca)",
+                save_profile: "Simpan Profil",
+                appearance_lang: "Tampilan & Bahasa",
+                dark_mode: "Mode Gelap",
+                dark_mode_desc: "Ganti antara tema gelap dan terang",
+                language: "Bahasa",
+                language_desc: "Pilih bahasa yang Anda sukai",
+                display_currency: "Mata Uang Tampilan",
+                display_currency_desc: "Ubah simbol mata uang",
+                security: "Keamanan",
+                "2fa_desc": "Tambahan keamanan ekstra",
+                change_password: "Ubah Kata Sandi",
+                update_password: "Perbarui Kata Sandi",
+                danger_zone: "Zona Bahaya",
+                danger_desc: "Tindakan yang tidak dapat dibatalkan.",
+                delete_account: "Hapus Akun",
+                search_placeholder: "Cari transaksi..."
+            }
+        };
+
+        // --- GLOBAL STATE ---
+        const state = {
+            isConnected: false,
+            address: null,
+            ethBalance: 0.00,
+            usdcBalance: 0.00,
+            ethPrice: 2500,
+            currency: 'USD',
+            currencySymbol: '$',
+            user: { name: 'Alex Developer', email: 'alex@consensys.net' },
+            lang: 'en', // Default Language
+            transactions: [
+                { hash: '0x3f...8a21', type: 'Transfer', time: '10 mins ago', status: 'Success', block: 182043 },
+                { hash: '0x7a...1b99', type: 'Contract Call', time: '1 hour ago', status: 'Success', block: 182010 },
+                { hash: '0x1c...4d22', type: 'Deployment', time: '3 hours ago', status: 'Pending', block: 181955 },
+            ]
+        };
+
+        // --- INIT ---
+        window.onload = () => {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-toggle').checked = (savedTheme === 'dark');
+            
+            updateDashboardUI();
+            renderAdminTable();
+            renderTransactionsList();
+            setTimeout(drawChart, 100);
+        };
+
+        // --- ROUTING ---
+        function router(viewId) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if(viewId === 'dashboard') setTimeout(drawChart, 100); 
+        }
+
+        // --- THEME SWITCHER ---
+        function toggleTheme(el) {
+            const theme = el.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            drawChart(); // Redraw chart to adjust colors
+            showToast(theme === 'dark' ? 'Dark Mode Activated' : 'Light Mode Activated', 'success');
+        }
+
+        // --- LANGUAGE SWITCHER ---
+        function changeLanguage(lang) {
+            state.lang = lang;
+            
+            // Update Text Elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+
+            // Update Placeholders
+            document.getElementById('searchInput').placeholder = translations[lang].search_placeholder;
+
+            showToast(`Language changed to ${lang === 'en' ? 'English' : 'Indonesia'}`, 'info');
+        }
+
+        // --- WALLET CONNECTION ---
+        function connectWallet() {
+            const btn = document.getElementById('connect-wallet-btn');
+            if (state.isConnected) {
+                state.isConnected = false;
+                state.address = null; state.ethBalance = 0; state.usdcBalance = 0;
+                btn.innerText = translations[state.lang].connect_wallet;
+                btn.classList.remove('connected');
+                updateDashboardUI();
+                showToast(translations[state.lang].dashboard + ' ' + (state.lang === 'en' ? 'Disconnected' : 'Terputus'), 'default');
+            } else {
+                btn.innerText = state.lang === 'en' ? "Connecting..." : "Menghubungkan...";
+                btn.disabled = true;
+                setTimeout(() => {
+                    state.isConnected = true;
+                    state.address = '0x71C' + Math.random().toString(16).substr(2, 4).toUpperCase() + '...' + Math.random().toString(16).substr(2, 4).toUpperCase();
+                    state.ethBalance = (Math.random() * 5 + 1).toFixed(4);
+                    state.usdcBalance = (Math.random() * 10000).toFixed(2);
+                    btn.innerText = state.address; btn.classList.add('connected'); btn.disabled = false;
+                    updateDashboardUI();
+                    showToast('Wallet Connected', 'success');
+                }, 1000);
+            }
+        }
+
+        // --- UI UPDATES ---
+        function updateDashboardUI() {
+            const btn = document.getElementById('connect-wallet-btn');
+            if(state.isConnected) { btn.innerText = state.address; }
+
+            document.getElementById('wallet-address-display').innerText = state.isConnected ? state.address : "Not Connected";
+            document.getElementById('wallet-eth-bal').innerText = state.ethBalance + " ETH";
+            
+            let rate = 1;
+            if(state.currency === 'USD') rate = 1;
+            if(state.currency === 'EUR') rate = 0.92;
+            if(state.currency === 'IDR') rate = 15600;
+            const convertedUsdc = (parseFloat(state.usdcBalance) * rate).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('wallet-usdc-bal').innerText = convertedUsdc;
+            document.getElementById('currency-display').innerText = state.currency;
+
+            const totalUsdRaw = (parseFloat(state.ethBalance) * state.ethPrice) + parseFloat(state.usdcBalance);
+            const totalUsd = (totalUsdRaw * rate).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('dash-total-usd').innerText = state.currencySymbol + " " + totalUsd;
+            document.getElementById('dash-balance-eth').innerText = state.ethBalance + " ETH";
+            
+            const trend = (Math.random() * 2 - 1).toFixed(2);
+            const trendEl = document.getElementById('dash-trend-eth');
+            trendEl.innerText = (trend > 0 ? "▲" : "▼") + " " + Math.abs(trend) + "%";
+            trendEl.className = "trend " + (trend > 0 ? "up" : "down");
+
+            renderAdminTable();
+            renderTransactionsList();
+            if(state.isConnected) drawChart();
+        }
+
+        // --- WALLET FUNCTIONS ---
+        function switchWalletTab(tab, el) {
+            document.querySelectorAll('.wallet-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function handleTransfer(e) {
+            e.preventDefault();
+            if (!state.isConnected) return showToast("Connect wallet first", "error");
+            const asset = document.getElementById('asset-select').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            const recipient = document.getElementById('recipient-address').value;
+            if (amount <= 0) return showToast("Invalid amount", "error");
+            if (asset === 'ETH' && amount > state.ethBalance) return showToast("Insufficient ETH", "error");
+
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "Broadcasting..."; btn.disabled = true;
+            setTimeout(() => {
+                if (asset === 'ETH') state.ethBalance = (state.ethBalance - amount).toFixed(4);
+                else state.usdcBalance = (state.usdcBalance - amount).toFixed(2);
+                addTransaction('Transfer', 'Success');
+                updateDashboardUI();
+                showToast(`Sent ${amount} ${asset}`, "success");
+                e.target.reset(); btn.innerText = originalText; btn.disabled = false;
+            }, 1500);
+        }
+
+        function handleReceive(e) {
+            e.preventDefault();
+            if (!state.isConnected) return showToast("Connect wallet", "error");
+            const asset = e.target.querySelector('select').value;
+            const amount = parseFloat(document.getElementById('receive-amount').value);
+            if(asset === 'ETH') state.ethBalance = (parseFloat(state.ethBalance) + amount).toFixed(4);
+            else state.usdcBalance = (parseFloat(state.usdcBalance) + amount).toFixed(2);
+            addTransaction('Receive', 'Success');
+            updateDashboardUI();
+            showToast(`Received ${amount} ${asset}`, "success");
+            e.target.reset();
+        }
+
+        function copyAddress() {
+            if(!state.address) return;
+            navigator.clipboard.writeText(state.address);
+            showToast("Address Copied", "success");
+        }
+
+        // --- CONTRACT FUNCTIONS ---
+        function deployContract() {
+            if (!state.isConnected) return showToast("Connect Wallet", "error");
+            showToast("Compiling...", "default");
+            setTimeout(() => {
+                const newHash = '0x' + Math.random().toString(16).substr(2, 8) + '...';
+                showToast(`Contract Deployed at ${newHash}`, "success");
+                addTransaction('Deployment', 'Success', newHash);
+            }, 2000);
+        }
+
+        function interactContract(func, val) {
+            if (!state.isConnected) return showToast("Connect Wallet", "error");
+            showToast(`Executing ${func}...`, "default");
+            setTimeout(() => {
+                showToast(`${func} Success`, "success");
+                if(val.includes("ETH")) {
+                     state.ethBalance = (parseFloat(state.ethBalance) - 0.001).toFixed(4);
+                     updateDashboardUI();
+                }
+            }, 1000);
+        }
+
+        // --- ADMIN FUNCTIONS ---
+        function addTransaction(type, status, customHash = null) {
+            state.transactions.unshift({
+                hash: customHash || ('0x' + Math.random().toString(16).substr(2, 8) + '...'),
+                type: type,
+                time: 'Just now',
+                status: status,
+                block: 182000 + Math.floor(Math.random() * 1000)
+            });
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            state.transactions.forEach(tx => {
+                const tr = document.createElement('tr');
+                const statusClass = tx.status === 'Success' ? 'status-success' : 'status-pending';
+                tr.innerHTML = `<td style="font-family:var(--font-mono); color:var(--primary);">${tx.hash}</td><td>${tx.type}</td><td>${tx.time}</td><td><span class="status-badge ${statusClass}">${tx.status}</span></td><td>#${tx.block}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Hash,Type,Time,Status,Block\n";
+            state.transactions.forEach(tx => {
+                csvContent += `${tx.hash},${tx.type},${tx.time},${tx.status},${tx.block}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "consensys_transactions.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("CSV Downloaded", "success");
+        }
+
+        function renderTransactionsList() {
+            const container = document.getElementById('txList');
+            container.innerHTML = '';
+            state.transactions.slice(0, 4).forEach(tx => {
+                const el = document.createElement('div');
+                el.className = 'tx-item';
+                el.onclick = () => showToast(`Hash: ${tx.hash}`, 'info');
+                el.innerHTML = `<div class="tx-icon">⚡</div><div style="flex:1;"><div style="font-weight:600; font-size:14px;">${tx.type}</div><div style="font-size:12px; color:var(--text-muted);">${tx.time}</div></div><div style="font-weight:600; font-family:monospace; font-size:0.85rem; color:var(--text-muted);">${tx.hash}</div>`;
+                container.appendChild(el);
+            });
+        }
+        
+        function filterTransactions() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if(document.getElementById('admin').classList.contains('active')) {
+                 const filtered = state.transactions.filter(tx => tx.type.toLowerCase().includes(query) || tx.hash.toLowerCase().includes(query));
+                 const tbody = document.getElementById('admin-table-body');
+                 tbody.innerHTML = '';
+                 filtered.forEach(tx => {
+                    const tr = document.createElement('tr');
+                    const statusClass = tx.status === 'Success' ? 'status-success' : 'status-pending';
+                    tr.innerHTML = `<td style="font-family:var(--font-mono); color:var(--primary);">${tx.hash}</td><td>${tx.type}</td><td>${tx.time}</td><td><span class="status-badge ${statusClass}">${tx.status}</span></td><td>#${tx.block}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // --- SETTINGS FUNCTIONS ---
+        function saveProfileSettings() {
+            const name = document.getElementById('setting-name').value;
+            const email = document.getElementById('setting-email').value;
+            if(!name || !email) return showToast("Name/Email required", "error");
+            state.user.name = name;
+            state.user.email = email;
+            updateDashboardUI();
+            showToast(translations[state.lang].save_profile, "success");
+        }
+
+        function updateCurrency() {
+            const val = document.getElementById('currency-select').value;
+            state.currency = val;
+            if(val === 'USD') state.currencySymbol = '$';
+            if(val === 'EUR') state.currencySymbol = '€';
+            if(val === 'IDR') state.currencySymbol = 'Rp';
+            updateDashboardUI();
+            showToast(`Currency changed to ${val}`, "info");
+        }
+
+        function toggle2FA(el) {
+            if(el.checked) {
+                showToast("Configuring 2FA...", "warning");
+                setTimeout(() => showToast("2FA Enabled", "success"), 2000);
+            } else {
+                showToast("2FA Disabled", "default");
+            }
+        }
+
+        // --- UTILS ---
+        function showToast(message, type = 'default') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast`;
+            if(type === 'success') toast.style.borderLeftColor = 'var(--success)';
+            if(type === 'error') toast.style.borderLeftColor = 'var(--danger)';
+            if(type === 'warning') toast.style.borderLeftColor = 'var(--warning)';
+            toast.innerHTML = `<span>${message}</span> <span style="cursor:pointer; opacity:0.5" onclick="this.parentElement.remove()">×</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function drawChart() {
+            const canvas = document.getElementById('mainChart');
+            const parent = canvas.parentElement;
+            if(!parent) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = parent.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            const w = rect.width, h = rect.height;
+            const points = [ {x:0,y:h*0.7}, {x:w*0.2,y:h*0.5}, {x:w*0.4,y:h*0.6}, {x:w*0.6,y:h*0.3}, {x:w*0.8,y:h*0.4}, {x:w,y:h*0.2} ];
+            
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, isLight ? 'rgba(108, 93, 211, 0.3)' : 'rgba(108, 93, 211, 0.4)'); 
+            grad.addColorStop(1, 'rgba(108, 93, 211, 0.0)');
+
+            ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(points[0].x, points[0].y);
+            for(let i=0; i<points.length-1; i++) { const mx=(points[i].x+points[i+1].x)/2, my=(points[i].y+points[i+1].y)/2; ctx.quadraticCurveTo(points[i].x, points[i].y, mx, my); }
+            ctx.lineTo(points[points.length-1].x, points[points.length-1].y); ctx.lineTo(w, h); ctx.fillStyle=grad; ctx.fill();
+            
+            ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+            for(let i=0; i<points.length-1; i++) { const mx=(points[i].x+points[i+1].x)/2, my=(points[i].y+points[i+1].y)/2; ctx.quadraticCurveTo(points[i].x, points[i].y, mx, my); }
+            ctx.lineTo(points[points.length-1].x, points[points.length-1].y); ctx.strokeStyle='#6C5DD3'; ctx.lineWidth=4; ctx.stroke();
+
+            points.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+                ctx.fillStyle = isLight ? '#000' : '#fff'; // Black dots in light mode
+                ctx.fill();
+            });
+        }
+
+        window.addEventListener('resize', () => { if(document.getElementById('dashboard').classList.contains('active')) drawChart(); });
+    </script>
+</body>
+</html>
